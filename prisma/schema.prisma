@@ -23,7 +23,7 @@ model Track {
 
 model Click {
   id        String   @id @default(uuid())
-  createdAd DateTime @default(now())
+  createdAt DateTime @default(now())
   userAgent String
   ip        String
 

@@ -1,9 +1,10 @@
-import { Button, Table } from "@mantine/core";
-import { useClipboard } from "@mantine/hooks";
-import { Click } from "@prisma/client";
-import { json, LoaderFunction } from "@remix-run/node";
+import type { Click } from "@prisma/client";
+import type { LoaderFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { db } from "~/utils/db.server";
+import { Button, Table } from "@mantine/core";
+import { useClipboard } from "@mantine/hooks";
 
 type LoaderData = {
   track: {
@@ -11,25 +12,24 @@ type LoaderData = {
     clicks: Click[];
   };
 };
-
 export const loader: LoaderFunction = async ({ params }) => {
   const track = await db.track.findUnique({
-    where: {
-      trackId: params.trackId,
-    },
+    where: { trackId: params.trackId },
     select: {
       trackId: true,
       clicks: {
         orderBy: [
           {
-            createdAd: "desc",
+            createdAt: "desc",
           },
         ],
       },
     },
   });
 
-  if (!track) throw new Error(`Track ${params.trackId} does not exist`);
+  if (!track) {
+    throw new Error(`Track ${params.trackId} does not exist`);
+  }
 
   const data: LoaderData = { track };
 
@@ -40,15 +40,17 @@ export default function TrackRoute() {
   const data = useLoaderData<LoaderData>();
   const clipboard = useClipboard({ timeout: 500 });
 
-  const rows = data.track.clicks.map((click) => (
-    <tr key={click.id}>
-      <td>
-        {new Date(click.createdAd).toLocaleDateString([], { hour12: true })}
-      </td>
-      <td>{click.userAgent}</td>
-      <td>{click.ip}</td>
-    </tr>
-  ));
+  const rows = data.track.clicks.map((click) => {
+    return (
+      <tr key={click.id}>
+        <td>
+          {new Date(click.createdAt).toLocaleDateString([], { hour12: true })}
+        </td>
+        <td>{click.userAgent}</td>
+        <td>{click.ip}</td>
+      </tr>
+    );
+  });
 
   return (
     <div>
@@ -62,13 +64,16 @@ export default function TrackRoute() {
       </Button>
       <Table>
         <thead>
-          <tr>Date</tr>
-          <tr>User agent</tr>
-          <tr>IP</tr>
+          <tr>
+            <td>Date</td>
+            <td>User agent</td>
+            <td>IP</td>
+          </tr>
         </thead>
         <tbody>{rows}</tbody>
       </Table>
-      <a href={`/${data.track.trackId}`}>TEXT</a>
+
+      <a href={`/${data.track.trackId}`}>TEST</a>
     </div>
   );
 }
