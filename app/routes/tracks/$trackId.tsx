@@ -1,4 +1,5 @@
-import { Table } from "@mantine/core";
+import { Button, Table } from "@mantine/core";
+import { useClipboard } from "@mantine/hooks";
 import { Click } from "@prisma/client";
 import { json, LoaderFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
@@ -37,6 +38,7 @@ export const loader: LoaderFunction = async ({ params }) => {
 
 export default function TrackRoute() {
   const data = useLoaderData<LoaderData>();
+  const clipboard = useClipboard({ timeout: 500 });
 
   const rows = data.track.clicks.map((click) => (
     <tr key={click.id}>
@@ -50,6 +52,14 @@ export default function TrackRoute() {
 
   return (
     <div>
+      <Button
+        color={clipboard.copied ? "teal" : "blue"}
+        onClick={() =>
+          clipboard.copy(`${window.location.origin}/${data.track.trackId}`)
+        }
+      >
+        {clipboard.copied ? "Copied" : "Copy"}
+      </Button>
       <Table>
         <thead>
           <tr>Date</tr>
