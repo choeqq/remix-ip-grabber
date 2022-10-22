@@ -1,32 +1,41 @@
+import { Button, Container, TextInput } from "@mantine/core";
+import { ActionFunction, redirect } from "@remix-run/node";
+import { Form } from "@remix-run/react";
+import { customAlphabet } from "nanoid";
+import { db } from "~/utils/db.server";
+
+const nanoid = customAlphabet("abcdefghijklmnoprstuwxyz0123456879", 10);
+
+export const action: ActionFunction = async ({ request }) => {
+  const form = await request.formData();
+  const redirectUrl = form.get("redirectUrl");
+
+  if (typeof redirectUrl !== "string") throw new Error("Invalid redirectUrl");
+
+  const fields = { redirectUrl, trackId: nanoid() };
+
+  const track = await db.track.create({ data: fields });
+
+  return redirect(`/tracks/${track.trackId}`);
+};
+
 export default function Index() {
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.4" }}>
-      <h1>Welcome to Remix</h1>
-      <ul>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/blog"
-            rel="noreferrer"
-          >
-            15m Quickstart Blog Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/jokes"
-            rel="noreferrer"
-          >
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
-      </ul>
-    </div>
+    <Container>
+      <Form method="post" style={{ display: "flex", alignItems: "flex-end" }}>
+        <TextInput
+          size="xl"
+          placeholder="https://google.com"
+          label="Redirect URL"
+          required
+          name="redirectUrl"
+          style={{ flex: 1 }}
+          type="url"
+        />
+        <Button ml="md" size="xl" type="submit">
+          Create tracker
+        </Button>
+      </Form>
+    </Container>
   );
 }
